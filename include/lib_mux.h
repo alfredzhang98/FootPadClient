@@ -1,0 +1,22 @@
+#ifndef Y3PROJ_LIB_MUX_H
+#define Y3PROJ_LIB_MUX_H
+
+#include <Arduino.h>
+
+#define D0_pin 37
+#define D1_pin 35
+#define D2_pin 33
+#define D3_pin 31
+#define D4_pin 29
+
+//按照F+F- S+S-连接
+#define MUX_WR_1 51
+#define MUX_WR_2 25
+#define MUX_WR_3 53
+#define MUX_WR_4 23
+
+void setupMux();
+
+void handleMux(const uint8_t *config);
+
+#endif //Y3PROJ_LIB_MUX_H
