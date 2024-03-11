@@ -5,10 +5,8 @@
 #include <string.h>
 
 #include <Arduino.h>
-
-#include <Arduino.h>
-#include <ad5940_bia.h>
 #include <hw_mux.h>
+#include <u_bia.h>
 
 enum {
     SET_PATTERN_BEGIN = 126,

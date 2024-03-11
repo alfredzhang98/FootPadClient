@@ -73,8 +73,9 @@ void loop()
     logger.logln("GET_MEASUREMENT prcessing...");
 
     // AD5940_Initialize();
-    AppBIACtrl(BIACTRL_START, nullptr);
+    // AppBIACtrl(BIACTRL_START, nullptr);
 
+    timer2.start();
     for (auto &i : measurePattern)
     {
       /* 更新Mux配置 */
@@ -86,6 +87,7 @@ void loop()
       // Serial.write(floatContainer.floatBytes, 4);
       // logger.loglnf("AD5940MeasureResult: %f", AD5940MeasureResult);
     }
+    timer2.stop("HandleMux time");
     // AppBIACtrl(BIACTRL_STOPNOW, nullptr);
   }
 }

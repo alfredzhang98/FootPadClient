@@ -27,10 +27,11 @@ AppBIACfg_Type AppBIACfg =
         .MaxSeqLenCal = 0,
 
         .ReDoRtiaCal = bFALSE,
-        .SysClkFreq = 32000000.0,       //----alfred
+        .SysClkFreq = 32000000.0, //----alfred
         .WuptClkFreq = 32000.0,
-        .AdcClkFreq = 32000000.0,       //----alfred
-        .BiaODR = 1000, /* 20.0 Hz*/    //----alfred
+        .AdcClkFreq = 32000000.0, //----alfred
+        .BiaODR = 1000,
+        /* 20.0 Hz*/ //----alfred
         .NumOfData = -1,
         .RcalVal = 10000.0, /* 10kOhm */
 
@@ -45,11 +46,11 @@ AppBIACfg_Type AppBIACfg =
         .SinFreq = 50000.0, /* 50kHz */
 
         .ADCPgaGain = ADCPGA_1,
-        .ADCSinc3Osr = ADCSINC3OSR_2,   //may influence
-        .ADCSinc2Osr = ADCSINC2OSR_22,  //may influence
+        .ADCSinc3Osr = ADCSINC3OSR_2,  // may influence
+        .ADCSinc2Osr = ADCSINC2OSR_22, // may influence
 
-        .DftNum = DFTNUM_8192,          //may influence
-        .DftSrc = DFTSRC_SINC3,         //may influence
+        .DftNum = DFTNUM_8192,  // may influence
+        .DftSrc = DFTSRC_SINC3, // may influence
         .HanWinEn = bTRUE,
 
         .SweepCfg.SweepEn = bFALSE,
@@ -353,7 +354,7 @@ static AD5940Err AppBIASeqMeasureGen(void)
   /*Alred: 添加监视“AppBIACfg.MaxODR”，以了解设置配置允许的最大采样率。*/
   AppBIACfg.MeasSeqCycleCount = AD5940_SEQCycleTime();
   AppBIACfg.MaxODR = 1 / (((AppBIACfg.MeasSeqCycleCount + 10) / 32.0) * 1E-6); // If Sysclk is16MHz
-  
+
   if (AppBIACfg.BiaODR > AppBIACfg.MaxODR)
   {
     /* We have requested a sampling rate that cannot be achieved with the time it takes to acquire a sample.*/
@@ -603,12 +604,11 @@ AD5940Err AppBIAISR(void *pBuff, uint32_t *pCount)
   {
     /* Now there should be 4 data in FIFO */
     FifoCnt = (AD5940_FIFOGetCnt() / 4) * 4;
-
-    if (FifoCnt > BuffCount)
-    {
-      ///@todo buffer is limited.
-      FifoCnt = AD5940_FIFOGetCnt(); //----alfred
-    }
+    // if (FifoCnt > BuffCount)
+    // {
+    //   ///@todo buffer is limited.
+    //   FifoCnt = AD5940_FIFOGetCnt(); //----alfred
+    // }
     AD5940_FIFORd((uint32_t *)pBuff, FifoCnt);
     AD5940_INTCClrFlag(AFEINTSRC_DATAFIFOTHRESH);
     AppBIARegModify(pBuff, &FifoCnt); /* If there is need to do AFE re-configure, do it here when AFE is in active state */

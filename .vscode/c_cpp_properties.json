@@ -10,15 +10,15 @@
             "includePath": [
                 "F:/GitProject/FootPadClient/include",
                 "F:/GitProject/FootPadClient/src",
-                "F:/GitProject/FootPadClient/lib/ad5940_bia",
-                "F:/GitProject/FootPadClient/lib/ad5940",
+                "C:/Users/Alfred/.platformio/packages/framework-arduino-sam/libraries/SPI/src",
+                "F:/GitProject/FootPadClient/lib/ad5940lib_bia",
+                "F:/GitProject/FootPadClient/lib/ad5940lib",
                 "C:/Users/Alfred/.platformio/packages/framework-arduino-sam/cores/arduino",
                 "C:/Users/Alfred/.platformio/packages/framework-arduino-sam/system/libsam",
                 "C:/Users/Alfred/.platformio/packages/framework-arduino-sam/system/CMSIS/CMSIS/Include",
                 "C:/Users/Alfred/.platformio/packages/framework-arduino-sam/system/CMSIS/Device/ATMEL",
                 "C:/Users/Alfred/.platformio/packages/framework-arduino-sam/variants/arduino_due_x",
                 "C:/Users/Alfred/.platformio/packages/framework-arduino-sam/libraries/HID/src",
-                "C:/Users/Alfred/.platformio/packages/framework-arduino-sam/libraries/SPI/src",
                 "C:/Users/Alfred/.platformio/packages/framework-arduino-sam/libraries/Wire/src",
                 ""
             ],
@@ -27,15 +27,15 @@
                 "path": [
                     "F:/GitProject/FootPadClient/include",
                     "F:/GitProject/FootPadClient/src",
-                    "F:/GitProject/FootPadClient/lib/ad5940_bia",
-                    "F:/GitProject/FootPadClient/lib/ad5940",
+                    "C:/Users/Alfred/.platformio/packages/framework-arduino-sam/libraries/SPI/src",
+                    "F:/GitProject/FootPadClient/lib/ad5940lib_bia",
+                    "F:/GitProject/FootPadClient/lib/ad5940lib",
                     "C:/Users/Alfred/.platformio/packages/framework-arduino-sam/cores/arduino",
                     "C:/Users/Alfred/.platformio/packages/framework-arduino-sam/system/libsam",
                     "C:/Users/Alfred/.platformio/packages/framework-arduino-sam/system/CMSIS/CMSIS/Include",
                     "C:/Users/Alfred/.platformio/packages/framework-arduino-sam/system/CMSIS/Device/ATMEL",
                     "C:/Users/Alfred/.platformio/packages/framework-arduino-sam/variants/arduino_due_x",
                     "C:/Users/Alfred/.platformio/packages/framework-arduino-sam/libraries/HID/src",
-                    "C:/Users/Alfred/.platformio/packages/framework-arduino-sam/libraries/SPI/src",
                     "C:/Users/Alfred/.platformio/packages/framework-arduino-sam/libraries/Wire/src",
                     ""
                 ]

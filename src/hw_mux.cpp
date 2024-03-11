@@ -58,11 +58,11 @@ static bool setDigitalPinState(const uint8_t *ARD_PIN_NUM) {
     digitalWrite(D3_pin, bitRead(temp, 3) ? HIGH : LOW);
     digitalWrite(D4_pin, bitRead(temp, 4) ? HIGH : LOW);
 
-    if (debug_print) {
-        for (uint8_t i = 0; i < 5; i++) {
-            logger.logf("%d ", bitRead(temp, i));
-        }
-    }
+    // if (debug_print) {
+    //     for (uint8_t i = 0; i < 5; i++) {
+    //         logger.logf("%d ", bitRead(temp, i));
+    //     }
+    // }
 
     return true;
 }
