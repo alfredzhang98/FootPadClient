@@ -1,5 +1,5 @@
-#ifndef Y3PROJ_LIB_MUX_H
-#define Y3PROJ_LIB_MUX_H
+#ifndef HW_MUX_H
+#define HW_MUX_H
 
 #include <Arduino.h>
 
@@ -19,4 +19,4 @@ void setupMux();
 
 void handleMux(const uint8_t *config);
 
-#endif //Y3PROJ_LIB_MUX_H
+#endif //HW_MUX_H

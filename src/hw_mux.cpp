@@ -1,4 +1,5 @@
-#include "lib_mux.h"
+#include "hw_mux.h"
+#include "tool_logger.h"
 
 extern bool debug_print;
 
@@ -59,7 +60,7 @@ static bool setDigitalPinState(const uint8_t *ARD_PIN_NUM) {
 
     if (debug_print) {
         for (uint8_t i = 0; i < 5; i++) {
-            Serial.print(bitRead(temp, i));
+            logger.logf("%d ", bitRead(temp, i));
         }
     }
 

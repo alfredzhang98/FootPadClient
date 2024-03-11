@@ -1,18 +1,24 @@
-#include "main.h"
+#include <main.h>
+#include <tool_logger.h>
+#include <tool_timer.h>
+
+/* Global variables from <BiaLib> */
+extern float AD5940MeasureResult;
+
+bool debug_print = true;
 
 std::vector<std::vector<uint8_t>> measurePattern;
-SimpleTimer timer1;
-SimpleTimer timer2;
+tool_timer timer1;
+tool_timer timer2;
 bool pattern_flag = false;
 
 void setup()
 {
   Serial.begin(115200);
   Serial.flush();
-
+  logger.enableLogging(debug_print);
   /* Init MUX and AD5940 */
   setupMux();
-
 }
 
 void loop()
@@ -27,9 +33,7 @@ void loop()
   if (Usr_cmd == SET_PATTERN_BEGIN)
   {
     uint8_t dataBuffer[4];
-#ifdef DEBUG
     timer1.start();
-#endif
     measurePattern.clear();
     do
     {
@@ -43,44 +47,45 @@ void loop()
       Serial.readBytes(dataBuffer + 1, 3);
       measurePattern.emplace_back(std::vector<uint8_t>{dataBuffer[0], dataBuffer[1], dataBuffer[2], dataBuffer[3]});
     } while (true);
-#ifdef DEBUG
     timer1.stop("SET_PATTERN_BEGIN");
+
+    logger.enableIdentifier(false);
     for (const auto &outer : measurePattern)
     {
       for (const auto &inner : outer)
       {
-        Serial.print(static_cast<int>(inner));
-        Serial.print(" ");
-      }
-      Serial.println("");
-    }
-#endif
-  pattern_flag = true;
-  }
 
+        logger.logf("%d ", static_cast<int>(inner));
+      }
+    }
+    logger.logln("\nFinsih print Data");
+    logger.enableIdentifier(true);
+    pattern_flag = true;
+  }
 
   if (Usr_cmd == GET_MEASUREMENT)
   {
-    if(!pattern_flag){
-      Serial.println("GET_MEASUREMENT without the pattern setting");
+    if (!pattern_flag)
+    {
+      logger.logln("GET_MEASUREMENT without the pattern setting");
       return;
     }
-    Serial.println("GET_MEASUREMENT prcessing...");
-    // AppBIACtrl(BIACTRL_START, nullptr);
+    logger.logln("GET_MEASUREMENT prcessing...");
 
-    // for (auto &i : measurePattern)
-    // {
-    //   /* 更新Mux配置 */
-    //   handleMux(i.data());
+    // AD5940_Initialize();
+    AppBIACtrl(BIACTRL_START, nullptr);
 
-    //   /* 更新AD5940的测量结果 */
-    //   AD5940_BIA_UpdateReading();
-
-    //   /* 转换测量结果为byte数组并发送 */
-    //   floatContainer.f = AD5940MeasureResult;
-    //   Serial.write(floatContainer.floatBytes, 4);
-    // }
-
+    for (auto &i : measurePattern)
+    {
+      /* 更新Mux配置 */
+      handleMux(i.data());
+      /* 更新AD5940的测量结果 */
+      // AD5940_BIA_UpdateReading();
+      /* 转换测量结果为byte数组并发送 */
+      // floatContainer.f = AD5940MeasureResult;
+      // Serial.write(floatContainer.floatBytes, 4);
+      // logger.loglnf("AD5940MeasureResult: %f", AD5940MeasureResult);
+    }
     // AppBIACtrl(BIACTRL_STOPNOW, nullptr);
   }
 }
