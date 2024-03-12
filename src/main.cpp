@@ -98,4 +98,5 @@ void loop()
     timer2.stop("HandleMux time");
     AppBIACtrl(BIACTRL_STOPNOW, nullptr);
   }
+  delay(10);
 }

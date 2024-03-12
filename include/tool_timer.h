@@ -4,6 +4,9 @@
 
 #include <Arduino.h>
 
+// #define milli
+#define micro
+
 class tool_timer {
 public:
     tool_timer();

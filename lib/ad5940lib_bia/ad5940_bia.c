@@ -30,7 +30,7 @@ AppBIACfg_Type AppBIACfg =
         .SysClkFreq = 32000000.0, //----alfred
         .WuptClkFreq = 32000.0,
         .AdcClkFreq = 32000000.0, //----alfred
-        .BiaODR = 1024.0,        //----alfred /* 20.0 Hz*/ set it very high to use the MaxODR to set the BiaODR
+        .BiaODR = 1000.0,         //----alfred /* 20.0 Hz*/ set it very high to use the MaxODR to set the BiaODR
         .NumOfData = -1,
         .RcalVal = 10000.0,       /* 10kOhm */
 
@@ -48,7 +48,7 @@ AppBIACfg_Type AppBIACfg =
         .ADCSinc3Osr = ADCSINC3OSR_2,  // may influence
         .ADCSinc2Osr = ADCSINC2OSR_22, // may influence
 
-        .DftNum = DFTNUM_512,  // may influence
+        .DftNum = DFTNUM_256,  // may influence
         .DftSrc = DFTSRC_SINC3, // may influence
         .HanWinEn = bTRUE,
 

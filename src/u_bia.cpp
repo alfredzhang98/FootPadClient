@@ -150,7 +150,7 @@ static int32_t AD5940PlatformCfg() {
     /* Step2. Configure FIFO and Sequencer*/
     fifo_cfg.FIFOEn = bFALSE;
     fifo_cfg.FIFOMode = FIFOMODE_FIFO;
-    fifo_cfg.FIFOSize = FIFOSIZE_4KB;                       /* 4kB for FIFO, The reset 2kB for sequencer */
+    fifo_cfg.FIFOSize = FIFOSIZE_6KB;                       /* 6kB for FIFO, The reset 2kB for sequencer */
     fifo_cfg.FIFOSrc = FIFOSRC_DFT;
     fifo_cfg.FIFOThresh = 4;//AppBIACfg.FifoThresh;        /* DFT result. One pair for RCAL, another for Rz. One DFT result have real part and imaginary part */
     AD5940_FIFOCfg(&fifo_cfg);                             /* Disable to reset FIFO. */
@@ -190,7 +190,7 @@ static void AD5940BIAStructInit() {
     pBIACfg->DftNum = DFTNUM_256;
 
     pBIACfg->NumOfData = -1;       /* Never stop until you stop it manually by AppBIACtrl() function */
-    pBIACfg->BiaODR = 1024.0;        /* ODR(Sample Rate) 20Hz */ // Not set here
+    pBIACfg->BiaODR = 1000.0;      /* ODR(Sample Rate) 20Hz */ // Not set here
     pBIACfg->FifoThresh = 4;       /* 4 */
     pBIACfg->ADCSinc3Osr = ADCSINC3OSR_2;
 }
