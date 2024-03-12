@@ -2,23 +2,30 @@
 #include <tool_logger.h>
 #include <tool_timer.h>
 
-/* Global variables from <BiaLib> */
-extern float AD5940MeasureResult;
+bool debug_print = false;
+bool log_print = true;
 
-bool debug_print = true;
+union {
+    float f;
+    byte floatBytes[4];
+} floatContainer{};
 
 std::vector<std::vector<uint8_t>> measurePattern;
 tool_timer timer1;
 tool_timer timer2;
 bool pattern_flag = false;
 
+unsigned long t;
+
 void setup()
 {
   Serial.begin(115200);
   Serial.flush();
-  logger.enableLogging(debug_print);
+  logger.enableLogging(log_print);
+ 
   /* Init MUX and AD5940 */
   setupMux();
+  AD5940_BIA_Setup();
 }
 
 void loop()
@@ -49,17 +56,19 @@ void loop()
     } while (true);
     timer1.stop("SET_PATTERN_BEGIN");
 
-    logger.enableIdentifier(false);
-    for (const auto &outer : measurePattern)
-    {
-      for (const auto &inner : outer)
+    if(debug_print){
+      logger.enableIdentifier(false);
+      for (const auto &outer : measurePattern)
       {
+        for (const auto &inner : outer)
+        {
 
-        logger.logf("%d ", static_cast<int>(inner));
+          logger.logf("%d ", static_cast<int>(inner));
+        }
       }
+      logger.logln("\nFinsih print Data");
+      logger.enableIdentifier(true);
     }
-    logger.logln("\nFinsih print Data");
-    logger.enableIdentifier(true);
     pattern_flag = true;
   }
 
@@ -72,22 +81,20 @@ void loop()
     }
     logger.logln("GET_MEASUREMENT prcessing...");
 
-    // AD5940_Initialize();
-    // AppBIACtrl(BIACTRL_START, nullptr);
-
+    AppBIACtrl(BIACTRL_START, nullptr);
     timer2.start();
     for (auto &i : measurePattern)
     {
       /* 更新Mux配置 */
       handleMux(i.data());
       /* 更新AD5940的测量结果 */
-      // AD5940_BIA_UpdateReading();
+      AD5940_BIA_UpdateReading();
       /* 转换测量结果为byte数组并发送 */
-      // floatContainer.f = AD5940MeasureResult;
+      floatContainer.f = GetBIAResult();
       // Serial.write(floatContainer.floatBytes, 4);
-      // logger.loglnf("AD5940MeasureResult: %f", AD5940MeasureResult);
+      // logger.loglnf("AD5940MeasureResult: %f", floatContainer.f);
     }
     timer2.stop("HandleMux time");
-    // AppBIACtrl(BIACTRL_STOPNOW, nullptr);
+    AppBIACtrl(BIACTRL_STOPNOW, nullptr);
   }
 }

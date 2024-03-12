@@ -24,4 +24,4 @@ private:
 
 extern tool_logger logger;
 
-#endif //_TOOL_LOGGER_H
+#endif // _TOOL_LOGGER_H

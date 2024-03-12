@@ -1,5 +1,6 @@
-#ifndef MAIN_H
-#define MAIN_H
+// main.h
+#ifndef _MAIN_H
+#define _MAIN_H
 
 #include <vector>
 #include <string.h>
@@ -14,4 +15,4 @@ enum {
     GET_MEASUREMENT = 128,
 };
 
-#endif //MAIN_H
+#endif // _MAIN_H

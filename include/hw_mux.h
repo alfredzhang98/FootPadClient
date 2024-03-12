@@ -1,5 +1,6 @@
-#ifndef HW_MUX_H
-#define HW_MUX_H
+// hw_mux.h
+#ifndef _HW_MUX_H
+#define _HW_MUX_H
 
 #include <Arduino.h>
 
@@ -19,4 +20,4 @@ void setupMux();
 
 void handleMux(const uint8_t *config);
 
-#endif //HW_MUX_H
+#endif // _HW_MUX_H
