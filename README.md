@@ -36,3 +36,13 @@ Default: HandleMux time
 Default:  Time spent: 7  ms
 
 Default:  Time total: 13  ms
+
+## Time with the MUX Transfer and DFTNUM_256 for 100 electrode
+
+Default: Mix time
+
+Default:  Time spent: 95  ms
+
+Default:  Time total: 95  ms
+
+This means we have 10 fps right now without decrease the DFT number
