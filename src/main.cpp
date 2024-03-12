@@ -92,7 +92,7 @@ void loop()
       AD5940_BIA_UpdateReading();
       /* 转换测量结果为byte数组并发送 */
       floatContainer.f = GetBIAResult();
-      // Serial.write(floatContainer.floatBytes, 4);
+      if(!log_print && !debug_print) Serial.write(floatContainer.floatBytes, 4);
       // logger.loglnf("AD5940MeasureResult: %f", floatContainer.f);
     }
     timer2.stop("HandleMux time");
