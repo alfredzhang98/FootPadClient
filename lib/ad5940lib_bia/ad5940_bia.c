@@ -30,10 +30,9 @@ AppBIACfg_Type AppBIACfg =
         .SysClkFreq = 32000000.0, //----alfred
         .WuptClkFreq = 32000.0,
         .AdcClkFreq = 32000000.0, //----alfred
-        .BiaODR = 1000.0,
-        /* 20.0 Hz*/ //----alfred
+        .BiaODR = 1024.0,        //----alfred /* 20.0 Hz*/ set it very high to use the MaxODR to set the BiaODR
         .NumOfData = -1,
-        .RcalVal = 10000.0, /* 10kOhm */
+        .RcalVal = 10000.0,       /* 10kOhm */
 
         .PwrMod = AFEPWR_LP,
         .HstiaRtiaSel = HSTIARTIA_1K,
@@ -44,12 +43,12 @@ AppBIACfg_Type AppBIACfg =
         .DacVoltPP = 800.0,
 
         // .SinFreq = 50000.0, /* 50kHz */
-        .SinFreq = 50000.0, /* 20k-200kHz */
+        .SinFreq = 125000.0, /* 20k-200kHz */
         .ADCPgaGain = ADCPGA_1,
         .ADCSinc3Osr = ADCSINC3OSR_2,  // may influence
         .ADCSinc2Osr = ADCSINC2OSR_22, // may influence
 
-        .DftNum = DFTNUM_256,  // may influence
+        .DftNum = DFTNUM_512,  // may influence
         .DftSrc = DFTSRC_SINC3, // may influence
         .HanWinEn = bTRUE,
 
@@ -326,23 +325,24 @@ static AD5940Err AppBIASeqMeasureGen(void) {
   error = AD5940_SEQGenFetchSeq(&pSeqCmd, &SeqLen);
   AD5940_SEQGenCtrl(bFALSE); /* Stop sequencer generator */
 
-  AppBIACfg.MeasSeqCycleCount = AD5940_SEQCycleTime();
-  AppBIACfg.MaxODR = 1 / (((AppBIACfg.MeasSeqCycleCount + 10) / 16.0) * 1E-6);
-  if (AppBIACfg.BiaODR > AppBIACfg.MaxODR) {
-    /* We have requested a sampling rate that cannot be achieved with the time it
-       takes to acquire a sample.
-    */
-    AppBIACfg.BiaODR = AppBIACfg.MaxODR;
-  }
-  // /*Alred: 添加监视“AppBIACfg.MaxODR”，以了解设置配置允许的最大采样率。*/
   // AppBIACfg.MeasSeqCycleCount = AD5940_SEQCycleTime();
-  // AppBIACfg.MaxODR = 1 / (((AppBIACfg.MeasSeqCycleCount + 10) / 32.0) * 1E-6); // If Sysclk is16MHz
-
-  // if (AppBIACfg.BiaODR > AppBIACfg.MaxODR)
-  // {
-  //   /* We have requested a sampling rate that cannot be achieved with the time it takes to acquire a sample.*/
+  // AppBIACfg.MaxODR = 1 / (((AppBIACfg.MeasSeqCycleCount + 10) / 16.0) * 1E-6);
+  // if (AppBIACfg.BiaODR > AppBIACfg.MaxODR) {
+  //   /* We have requested a sampling rate that cannot be achieved with the time it
+  //      takes to acquire a sample.
+  //   */
   //   AppBIACfg.BiaODR = AppBIACfg.MaxODR;
   // }
+  /*alfred: 添加监视“AppBIACfg.MaxODR”，以了解设置配置允许的最大采样率。*/
+  AppBIACfg.MeasSeqCycleCount = AD5940_SEQCycleTime();
+  AppBIACfg.MaxODR = 1 / (((AppBIACfg.MeasSeqCycleCount + 10) / 32.0) * 1E-6); // If Sysclk is16MHz
+
+  if (AppBIACfg.BiaODR > AppBIACfg.MaxODR)
+  {
+    /* We have requested a sampling rate that cannot be achieved with the time it takes to acquire a sample.*/
+    AppBIACfg.BiaODR = AppBIACfg.MaxODR;
+  }
+  /*End Alfred*/
 
   if (error == AD5940ERR_OK) {
     AppBIACfg.MeasureSeqInfo.SeqId = SEQID_0;

@@ -2,6 +2,7 @@
 #include "tool_logger.h"
 
 extern bool debug_print;
+extern AppBIACfg_Type AppBIACfg;
 
 /*
     This is the begin of the AD5940 Hardware setting on Arduino Due
@@ -189,7 +190,7 @@ static void AD5940BIAStructInit() {
     pBIACfg->DftNum = DFTNUM_256;
 
     pBIACfg->NumOfData = -1;       /* Never stop until you stop it manually by AppBIACtrl() function */
-    pBIACfg->BiaODR = 1000;        /* ODR(Sample Rate) 20Hz */
+    pBIACfg->BiaODR = 1024.0;        /* ODR(Sample Rate) 20Hz */ // Not set here
     pBIACfg->FifoThresh = 4;       /* 4 */
     pBIACfg->ADCSinc3Osr = ADCSINC3OSR_2;
 }
@@ -211,6 +212,13 @@ void AD5940_BIA_UpdateReading() {
     AppBIAISR(AppBuff, &temp); /* Deal with it and provide a buffer to store data we got */
     // if(debug_print) BIAShowResult(AppBuff, temp); /* Show the results */
     BIAResultUpdate(AppBuff);
+}
+
+void print_setting_info(){
+    logger.loglnf("This is SysClkFreq (32MHz) %g", AppBIACfg.SysClkFreq);
+    logger.loglnf("This is AD5940_SEQCycleTime %g", AD5940_SEQCycleTime());
+    logger.loglnf("This is MeasSeqCycleCount %g", AppBIACfg.MeasSeqCycleCount);
+    logger.loglnf("This is MaxODR %g", AppBIACfg.MaxODR);
 }
 
 /*

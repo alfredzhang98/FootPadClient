@@ -9,7 +9,7 @@ extern "C" {
 #include <ad5940_bia.h>
 }
 
-#define APPBUFF_SIZE 128
+#define APPBUFF_SIZE 512
 
 #define SPI_CS_AD5940_Pin 10
 #define AD5940_ResetPin A3
@@ -20,5 +20,7 @@ void AD5940_BIA_Setup();
 float GetBIAResult();
 
 void AD5940_BIA_UpdateReading();
+
+void print_setting_info();
 
 #endif // _U_BIA_H
