@@ -9,7 +9,7 @@ extern "C" {
 #include <ad5940_bia.h>
 }
 
-#define APPBUFF_SIZE 512
+#define APPBUFF_SIZE 128
 
 #define SPI_CS_AD5940_Pin 10
 #define AD5940_ResetPin A3

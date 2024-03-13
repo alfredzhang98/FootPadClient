@@ -3,11 +3,12 @@
 #include <tool_timer.h>
 
 bool debug_print = false;
-bool log_print = false;
+bool log_print = true;
 
-union {
-    float f;
-    byte floatBytes[4];
+union
+{
+  float f;
+  byte floatBytes[4];
 } floatContainer{};
 
 std::vector<std::vector<uint8_t>> measurePattern;
@@ -22,11 +23,12 @@ void setup()
   Serial.begin(115200);
   Serial.flush();
   logger.enableLogging(log_print);
- 
+
   /* Init MUX and AD5940 */
   setupMux();
   AD5940_BIA_Setup();
   print_setting_info();
+  delay(100);
 }
 
 void loop()
@@ -57,7 +59,8 @@ void loop()
     } while (true);
     timer1.stop("SET_PATTERN_BEGIN");
 
-    if(debug_print){
+    if (debug_print)
+    {
       logger.enableIdentifier(false);
       for (const auto &outer : measurePattern)
       {
@@ -83,20 +86,21 @@ void loop()
     logger.logln("GET_MEASUREMENT prcessing...");
 
     AppBIACtrl(BIACTRL_START, nullptr);
-          timer2.start();
-      for (auto &i : measurePattern)
-      {
-        /* 更新Mux配置 */
-        handleMux(i.data());
-        /* 更新AD5940的测量结果 */
-        AD5940_BIA_UpdateReading();
-        /* 转换测量结果为byte数组并发送 */
-        floatContainer.f = GetBIAResult();
-        if(!log_print && !debug_print) Serial.write(floatContainer.floatBytes, 4);
-        // logger.loglnf("AD5940MeasureResult: %f", floatContainer.f);
-      }
-      timer2.stop("HandleMux time");
-          AppBIACtrl(BIACTRL_STOPNOW, nullptr);
+    timer2.start();
+    for (auto &i : measurePattern)
+    {
+      /* 更新Mux配置 */
+      handleMux(i.data());
+      /* 更新AD5940的测量结果 */
+      AD5940_BIA_UpdateReading();
+      /* 转换测量结果为byte数组并发送 */
+      floatContainer.f = GetBIAResult();
+      if (!log_print && !debug_print)
+        Serial.write(floatContainer.floatBytes, 4);
+      // logger.loglnf("AD5940MeasureResult: %f", floatContainer.f);
+    }
+    timer2.stop("HandleMux time");
+    AppBIACtrl(BIACTRL_STOPNOW, nullptr);
   }
   delay(10);
 }
