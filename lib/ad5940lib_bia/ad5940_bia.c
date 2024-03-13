@@ -154,7 +154,7 @@ static AD5940Err AppBIASeqCfgGen(void) {
   //AD5940_AFECtrlS(AFECTRL_ALL, bFALSE);  /* Init all to disable state */
 
   aferef_cfg.HpBandgapEn = bTRUE;
-  aferef_cfg.Hp1V1BuffEn = bTRUE;
+  aferef_cfg.Hp1V1BuffEn = bTRUE; //bTRUE
   aferef_cfg.Hp1V8BuffEn = bTRUE;
   aferef_cfg.Disc1V1Cap = bFALSE;
   aferef_cfg.Disc1V8Cap = bFALSE;
@@ -231,12 +231,14 @@ static AD5940Err AppBIASeqCfgGen(void) {
   memset(&dsp_cfg.ADCDigCompCfg, 0, sizeof(dsp_cfg.ADCDigCompCfg));
 
   dsp_cfg.ADCFilterCfg.ADCAvgNum = ADCAVGNUM_16;  /* Don't care because it's disabled */
-  dsp_cfg.ADCFilterCfg.ADCRate = ADCRATE_800KHZ;  /* Tell filter block clock rate of ADC*/
+  dsp_cfg.ADCFilterCfg.ADCRate = ADCRATE_1P6MHZ;  /* Tell filter block clock rate of ADC*/
   dsp_cfg.ADCFilterCfg.ADCSinc2Osr = AppBIACfg.ADCSinc2Osr;
   dsp_cfg.ADCFilterCfg.ADCSinc3Osr = AppBIACfg.ADCSinc3Osr;
-  dsp_cfg.ADCFilterCfg.BpSinc3 = bFALSE;
-  dsp_cfg.ADCFilterCfg.BpNotch = bTRUE;
-  dsp_cfg.ADCFilterCfg.Sinc2NotchEnable = bTRUE;
+  dsp_cfg.ADCFilterCfg.BpSinc3 = bFALSE;        //bFALSE
+  dsp_cfg.ADCFilterCfg.BpNotch = bTRUE;        //bTRUE
+  // dsp_cfg.ADCFilterCfg.Sinc2NotchClkEnable = bFALSE;  //----alfred
+  dsp_cfg.ADCFilterCfg.Sinc2NotchEnable = bTRUE; //bTRUE
+  // dsp_cfg.ADCFilterCfg.Sinc3ClkEnable = bTRUE; //----alfred
   dsp_cfg.DftCfg.DftNum = AppBIACfg.DftNum;
   dsp_cfg.DftCfg.DftSrc = AppBIACfg.DftSrc;
   dsp_cfg.DftCfg.HanWinEn = AppBIACfg.HanWinEn;
@@ -565,8 +567,8 @@ AD5940Err AppBIAISR(void *pBuff, uint32_t *pCount) {
   if (AD5940_INTCTestFlag(AFEINTC_0, AFEINTSRC_DATAFIFOTHRESH) == bTRUE)
   {
     /* Now there should be 4 data in FIFO */
-    FifoCnt = (AD5940_FIFOGetCnt() / 4) * 4;
-    // FifoCnt = AD5940_FIFOGetCnt();
+    // FifoCnt = (AD5940_FIFOGetCnt() / 4) * 4;
+    FifoCnt = AD5940_FIFOGetCnt();
     // if (FifoCnt > BuffCount)
     // {
     //   ///@todo buffer is limited.

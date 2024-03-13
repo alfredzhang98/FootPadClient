@@ -3,7 +3,7 @@
 #include <tool_timer.h>
 
 bool debug_print = false;
-bool log_print = true;
+bool log_print = false;
 
 union {
     float f;
@@ -83,20 +83,20 @@ void loop()
     logger.logln("GET_MEASUREMENT prcessing...");
 
     AppBIACtrl(BIACTRL_START, nullptr);
-    timer2.start();
-    for (auto &i : measurePattern)
-    {
-      /* 更新Mux配置 */
-      handleMux(i.data());
-      /* 更新AD5940的测量结果 */
-      AD5940_BIA_UpdateReading();
-      /* 转换测量结果为byte数组并发送 */
-      floatContainer.f = GetBIAResult();
-      if(!log_print && !debug_print) Serial.write(floatContainer.floatBytes, 4);
-      // logger.loglnf("AD5940MeasureResult: %f", floatContainer.f);
-    }
-    timer2.stop("HandleMux time");
-    AppBIACtrl(BIACTRL_STOPNOW, nullptr);
+          timer2.start();
+      for (auto &i : measurePattern)
+      {
+        /* 更新Mux配置 */
+        handleMux(i.data());
+        /* 更新AD5940的测量结果 */
+        AD5940_BIA_UpdateReading();
+        /* 转换测量结果为byte数组并发送 */
+        floatContainer.f = GetBIAResult();
+        if(!log_print && !debug_print) Serial.write(floatContainer.floatBytes, 4);
+        // logger.loglnf("AD5940MeasureResult: %f", floatContainer.f);
+      }
+      timer2.stop("HandleMux time");
+          AppBIACtrl(BIACTRL_STOPNOW, nullptr);
   }
   delay(10);
 }

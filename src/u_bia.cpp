@@ -1,5 +1,8 @@
 #include "u_bia.h"
 #include "tool_logger.h"
+#include <tool_timer.h>
+
+tool_timer timer3;
 
 extern bool debug_print;
 extern AppBIACfg_Type AppBIACfg;
@@ -206,11 +209,14 @@ void AD5940_BIA_Setup() {
 
 void AD5940_BIA_UpdateReading() {
     /* Wait for interrupt happens */
+    // 2-4us
     while (AD5940_GetMCUIntFlag() == 0);
+    // 8.246ms main time spend
     AD5940_ClrMCUIntFlag();
     uint32_t temp = APPBUFF_SIZE;
     AppBIAISR(AppBuff, &temp); /* Deal with it and provide a buffer to store data we got */
     // if(debug_print) BIAShowResult(AppBuff, temp); /* Show the results */
+    // 2-4us
     BIAResultUpdate(AppBuff);
 }
 
