@@ -7,6 +7,8 @@ tool_timer timer3;
 extern bool debug_print;
 extern AppBIACfg_Type AppBIACfg;
 
+void print_setting_info();
+
 /*
     This is the begin of the AD5940 Hardware setting on Arduino Due
 */

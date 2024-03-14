@@ -27,7 +27,6 @@ void setup()
   /* Init MUX and AD5940 */
   setupMux();
   AD5940_BIA_Setup();
-  print_setting_info();
   delay(100);
 }
 
