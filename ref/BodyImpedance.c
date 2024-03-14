@@ -10,8 +10,7 @@ By using this software you agree to the terms of the associated
 Analog Devices Software License Agreement.
 
 *****************************************************************************/
-#include "ad5940_bia.h"
-#include "utime.h"
+#include "BodyImpedance.h"
 
 /*
   Application configuration structure. Specified by user from template.
@@ -28,10 +27,10 @@ AppBIACfg_Type AppBIACfg =
         .MaxSeqLenCal = 0,
 
         .ReDoRtiaCal = bFALSE,
-        .SysClkFreq = 32000000.0, //----alfred
+        .SysClkFreq = 16000000.0,
         .WuptClkFreq = 32000.0,
-        .AdcClkFreq = 32000000.0, //----alfred
-        .BiaODR = 1000.0,         //----alfred /* 20.0 Hz*/ set it very high to use the MaxODR to set the BiaODR
+        .AdcClkFreq = 16000000.0,
+        .BiaODR = 20.0, /* 20.0 Hz*/
         .NumOfData = -1,
         .RcalVal = 10000.0, /* 10kOhm */
 
@@ -43,14 +42,14 @@ AppBIACfg_Type AppBIACfg =
         .HsDacUpdateRate = 7,
         .DacVoltPP = 800.0,
 
-        // .SinFreq = 50000.0, /* 50kHz */
-        .SinFreq = 125000.0, /* 20k-200kHz */
-        .ADCPgaGain = ADCPGA_1,
-        .ADCSinc3Osr = ADCSINC3OSR_2,  // may influence
-        .ADCSinc2Osr = ADCSINC2OSR_22, // may influence
+        .SinFreq = 50000.0, /* 50kHz */
 
-        .DftNum = DFTNUM_256,    // may influence
-        .DftSrc = DFTSRC_SINC3, // may influence
+        .ADCPgaGain = ADCPGA_1,
+        .ADCSinc3Osr = ADCSINC3OSR_2,
+        .ADCSinc2Osr = ADCSINC2OSR_22,
+
+        .DftNum = DFTNUM_8192,
+        .DftSrc = DFTSRC_SINC3,
         .HanWinEn = bTRUE,
 
         .SweepCfg.SweepEn = bFALSE,
@@ -165,7 +164,7 @@ static AD5940Err AppBIASeqCfgGen(void)
   // AD5940_AFECtrlS(AFECTRL_ALL, bFALSE);  /* Init all to disable state */
 
   aferef_cfg.HpBandgapEn = bTRUE;
-  aferef_cfg.Hp1V1BuffEn = bTRUE; // bTRUE
+  aferef_cfg.Hp1V1BuffEn = bTRUE;
   aferef_cfg.Hp1V8BuffEn = bTRUE;
   aferef_cfg.Disc1V1Cap = bFALSE;
   aferef_cfg.Disc1V8Cap = bFALSE;
@@ -244,14 +243,12 @@ static AD5940Err AppBIASeqCfgGen(void)
   memset(&dsp_cfg.ADCDigCompCfg, 0, sizeof(dsp_cfg.ADCDigCompCfg));
 
   dsp_cfg.ADCFilterCfg.ADCAvgNum = ADCAVGNUM_16; /* Don't care because it's disabled */
-  dsp_cfg.ADCFilterCfg.ADCRate = ADCRATE_1P6MHZ; /* Tell filter block clock rate of ADC*/
+  dsp_cfg.ADCFilterCfg.ADCRate = ADCRATE_800KHZ; /* Tell filter block clock rate of ADC*/
   dsp_cfg.ADCFilterCfg.ADCSinc2Osr = AppBIACfg.ADCSinc2Osr;
   dsp_cfg.ADCFilterCfg.ADCSinc3Osr = AppBIACfg.ADCSinc3Osr;
-  dsp_cfg.ADCFilterCfg.BpSinc3 = bFALSE; // bFALSE
-  dsp_cfg.ADCFilterCfg.BpNotch = bTRUE;  // bTRUE
-  // dsp_cfg.ADCFilterCfg.Sinc2NotchClkEnable = bTRUE;  //----alfred
-  dsp_cfg.ADCFilterCfg.Sinc2NotchEnable = bTRUE; // bTRUE
-  // dsp_cfg.ADCFilterCfg.Sinc3ClkEnable = bTRUE; //----alfred
+  dsp_cfg.ADCFilterCfg.BpSinc3 = bFALSE;
+  dsp_cfg.ADCFilterCfg.BpNotch = bTRUE;
+  dsp_cfg.ADCFilterCfg.Sinc2NotchEnable = bTRUE;
   dsp_cfg.DftCfg.DftNum = AppBIACfg.DftNum;
   dsp_cfg.DftCfg.DftSrc = AppBIACfg.DftSrc;
   dsp_cfg.DftCfg.HanWinEn = AppBIACfg.HanWinEn;
@@ -267,8 +264,7 @@ static AD5940Err AppBIASeqCfgGen(void)
   AD5940_SEQGpioCtrlS(0 /*AGPIO_Pin6|AGPIO_Pin5|AGPIO_Pin1*/); // GP6->endSeq, GP5 -> AD8233=OFF, GP1->RLD=OFF .
 
   /* Sequence end. */
-  AD5940_SEQGenInsert(
-      SEQ_STOP()); /* Add one extra command to disable sequencer for initialization sequence because we only want it to run one time. */
+  AD5940_SEQGenInsert(SEQ_STOP()); /* Add one extra command to disable sequencer for initialization sequence because we only want it to run one time. */
 
   /* Stop here */
   error = AD5940_SEQGenFetchSeq(&pSeqCmd, &SeqLen);
@@ -344,18 +340,8 @@ static AD5940Err AppBIASeqMeasureGen(void)
   error = AD5940_SEQGenFetchSeq(&pSeqCmd, &SeqLen);
   AD5940_SEQGenCtrl(bFALSE); /* Stop sequencer generator */
 
-  // AppBIACfg.MeasSeqCycleCount = AD5940_SEQCycleTime();
-  // AppBIACfg.MaxODR = 1 / (((AppBIACfg.MeasSeqCycleCount + 10) / 16.0) * 1E-6);
-  // if (AppBIACfg.BiaODR > AppBIACfg.MaxODR) {
-  //   /* We have requested a sampling rate that cannot be achieved with the time it
-  //      takes to acquire a sample.
-  //   */
-  //   AppBIACfg.BiaODR = AppBIACfg.MaxODR;
-  // }
-  /*alfred: 添加监视“AppBIACfg.MaxODR”，以了解设置配置允许的最大采样率。*/
   AppBIACfg.MeasSeqCycleCount = AD5940_SEQCycleTime();
-  AppBIACfg.MaxODR = 1 / (((AppBIACfg.MeasSeqCycleCount + 10) / 32.0) * 1E-6); // If Sysclk is16MHz
-
+  AppBIACfg.MaxODR = 1 / (((AppBIACfg.MeasSeqCycleCount + 10) / 16.0) * 1E-6);
   if (AppBIACfg.BiaODR > AppBIACfg.MaxODR)
   {
     /* We have requested a sampling rate that cannot be achieved with the time it
@@ -363,7 +349,6 @@ static AD5940Err AppBIASeqMeasureGen(void)
     */
     AppBIACfg.BiaODR = AppBIACfg.MaxODR;
   }
-  /*End Alfred*/
 
   if (error == AD5940ERR_OK)
   {
@@ -566,14 +551,14 @@ static AD5940Err AppBIADataProcess(int32_t *const pData, uint32_t *pDataCount)
 
     VoltMag = sqrt((float)pDftVolt->Real * pDftVolt->Real + (float)pDftVolt->Image * pDftVolt->Image);
     VoltPhase = atan2(-pDftVolt->Image, pDftVolt->Real);
-    // CurrMag = sqrt((float)pDftCurr->Real * pDftCurr->Real + (float)pDftCurr->Image * pDftCurr->Image);
-    // CurrPhase = atan2(-pDftCurr->Image, pDftCurr->Real);
+    CurrMag = sqrt((float)pDftCurr->Real * pDftCurr->Real + (float)pDftCurr->Image * pDftCurr->Image);
+    CurrPhase = atan2(-pDftCurr->Image, pDftCurr->Real);
 
     VoltMag = VoltMag / CurrMag * AppBIACfg.RtiaCurrValue[0];
-    // VoltPhase = VoltPhase - CurrPhase + AppBIACfg.RtiaCurrValue[1];
+    VoltPhase = VoltPhase - CurrPhase + AppBIACfg.RtiaCurrValue[1];
 
     pOut[i].Magnitude = VoltMag;
-    // pOut[i].Phase = VoltPhase;
+    pOut[i].Phase = VoltPhase;
   }
   *pDataCount = ImpResCount;
   /* Calculate next frequency point */
@@ -592,61 +577,34 @@ static AD5940Err AppBIADataProcess(int32_t *const pData, uint32_t *pDataCount)
  */
 AD5940Err AppBIAISR(void *pBuff, uint32_t *pCount)
 {
-  // toolTimer_init();
-  // uint32_t BuffCount;
+  uint32_t BuffCount;
   uint32_t FifoCnt;
-  // BuffCount = *pCount;
-  // toolTimer_start();
+  BuffCount = *pCount;
   if (AppBIACfg.BIAInited == bFALSE)
     return AD5940ERR_APPERROR;
   if (AD5940_WakeUp(10) > 10)        /* Wakeup AFE by read register, read 10 times at most */
     return AD5940ERR_WAKEUP;         /* Wakeup Failed */
   AD5940_SleepKeyCtrlS(SLPKEY_LOCK); /* Don't enter hibernate */
-  // toolTimer_stop("1");
-  // useless
-  //  *pCount = 0;
+  *pCount = 0;
 
   if (AD5940_INTCTestFlag(AFEINTC_0, AFEINTSRC_DATAFIFOTHRESH) == bTRUE)
   {
     /* Now there should be 4 data in FIFO */
-    // FifoCnt = (AD5940_FIFOGetCnt() / 4) * 4;
-    // toolTimer_start();
-    FifoCnt = AD5940_FIFOGetCnt();
-    // if (FifoCnt > BuffCount)
-    // {
-    //   ///@todo buffer is limited.
-    //   FifoCnt = AD5940_FIFOGetCnt(); //----alfred
-    // }
-    // toolTimer_stop("2");
-    // toolTimer_start();
+    FifoCnt = (AD5940_FIFOGetCnt() / 4) * 4;
+
+    if (FifoCnt > BuffCount)
+    {
+      ///@todo buffer is limited.
+    }
     AD5940_FIFORd((uint32_t *)pBuff, FifoCnt);
-    // toolTimer_stop("3");
-    // toolTimer_start();
     AD5940_INTCClrFlag(AFEINTSRC_DATAFIFOTHRESH);
-    // toolTimer_stop("4");
-    // toolTimer_start();
     AppBIARegModify(pBuff, &FifoCnt); /* If there is need to do AFE re-configure, do it here when AFE is in active state */
     // AD5940_EnterSleepS();  /* Manually put AFE back to hibernate mode. */
     AD5940_SleepKeyCtrlS(SLPKEY_UNLOCK); /* Allow AFE to enter hibernate mode */
     /* Process data */
-    // toolTimer_stop("5");
-    // toolTimer_start();
     AppBIADataProcess((int32_t *)pBuff, &FifoCnt);
-    // toolTimer_stop("6");
     *pCount = FifoCnt;
     return 0;
-    // 1
-    //  Time spent: 166 us
-    // 2
-    //  Time spent: 97 us
-    // 3
-    //  Time spent: 2702 us
-    // 4
-    //  Time spent: 88 us
-    // 5
-    //  Time spent: 3 us
-    // 6
-    //  Time spent: 3660 us
   }
 
   return 0;

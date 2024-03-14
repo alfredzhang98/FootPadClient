@@ -316,9 +316,7 @@ uint32_t AD5940_SEQCycleTime(void)
 {
   uint32_t i, Cycles, Cmd;  
   Cycles = 0;
-  /* Alfred Change here*/
-  // for(i=0;i<SeqGenDB.RegCount;i++) //origin
-  for(i=0;i<SeqGenDB.SeqLen;i++)      //alfred
+  for(i=0;i<SeqGenDB.RegCount;i++)
   {
     Cmd = (SeqGenDB.pSeqBuff[i]  >> 30) & 0x3;
     if (Cmd & 0x2)
@@ -1392,7 +1390,7 @@ void AD5940_HSDacCfgS(HSDACCfg_Type *pHsDacCfg)
 }
 
 
-void __AD5940_SetDExRTIA(uint32_t DExPin, uint32_t DeRtia, uint32_t DeRload)
+static void __AD5940_SetDExRTIA(uint32_t DExPin, uint32_t DeRtia, uint32_t DeRload)
 {
   uint32_t tempreg;
   /* deal with HSTIA DE RTIA */
@@ -3395,14 +3393,6 @@ AD5940Err AD5940_HSTIAOffsetCal(LPTIAOffsetCal_Type *pHSTIAOffsetCal)
 **/
 AD5940Err AD5940_HSRtiaCal(HSRTIACal_Type *pCalCfg, void *pResult)
 {
-/***** CALIBRATION METHOD ******
-  1) Measure the complex voltage V_Rcal across the calibration DUT (Rcal).
-  2) Measure the complex voltage V_Rtia across Rtia [HSTIA_P (output) - HSTIA_N].
-  3) Note Rtia carries the same current as Rcal; I_Rtia = I_exc = I_Rcal
-  4) Implement the equation: Rtia = V_Rtia / I_Rtia 
-      --> Rtia = (V_Rtia / V_Rcal) * Rcal
-  *******************************/
-  
   AFERefCfg_Type aferef_cfg;
   HSLoopCfg_Type hs_loop;
   DSPCfg_Type dsp_cfg;
@@ -3419,7 +3409,7 @@ AD5940Err AD5940_HSRtiaCal(HSRTIACal_Type *pCalCfg, void *pResult)
   uint32_t const HSTIADERTIATable[] = {50,100,200,1000,5000,10000,20000,40000,80000,160000,0,999999999999999};
   uint32_t WgAmpWord;
 
-  iImpCar_Type DftRcalVolt, DftRtiaVolt;
+  iImpCar_Type DftRcal, DftRtia;
 
   if(pCalCfg == NULL) return AD5940ERR_NULLP;
   if(pCalCfg->fRcal == 0)
@@ -3549,7 +3539,6 @@ AD5940Err AD5940_HSRtiaCal(HSRTIACal_Type *pCalCfg, void *pResult)
                 /*AFECTRL_WG|*/AFECTRL_DACREFPWR|AFECTRL_HSDACPWR|\
                 AFECTRL_SINC2NOTCH, bTRUE);
   
-/***** MEASURE VOLTAGE ACROSS RCAL *****/
   AD5940_AFECtrlS(AFECTRL_WG|AFECTRL_ADCPWR, bTRUE);  /* Enable Waveform generator, ADC power */
   //wait for sometime.
   AD5940_Delay10us(25);
@@ -3559,10 +3548,9 @@ AD5940Err AD5940_HSRtiaCal(HSRTIACal_Type *pCalCfg, void *pResult)
   AD5940_AFECtrlS(AFECTRL_ADCCNV|AFECTRL_DFT|AFECTRL_WG|AFECTRL_ADCPWR, bFALSE);  /* Stop ADC convert and DFT */
   AD5940_INTCClrFlag(AFEINTSRC_DFTRDY);
   
-  DftRcalVolt.Real = AD5940_ReadAfeResult(AFERESULT_DFTREAL);
-  DftRcalVolt.Image = AD5940_ReadAfeResult(AFERESULT_DFTIMAGE);
+  DftRcal.Real = AD5940_ReadAfeResult(AFERESULT_DFTREAL);
+  DftRcal.Image = AD5940_ReadAfeResult(AFERESULT_DFTIMAGE);
 
-/***** MEASURE VOLTAGE ACROSS RTIA *****/
   AD5940_ADCMuxCfgS(ADCMUXP_HSTIA_P, ADCMUXN_HSTIA_N);
   AD5940_AFECtrlS(AFECTRL_WG|AFECTRL_ADCPWR, bTRUE);  /* Enable Waveform generator, ADC power */
   //wait for sometime.
@@ -3573,36 +3561,34 @@ AD5940Err AD5940_HSRtiaCal(HSRTIACal_Type *pCalCfg, void *pResult)
   AD5940_AFECtrlS(AFECTRL_ADCCNV|AFECTRL_DFT|AFECTRL_WG|AFECTRL_ADCPWR, bFALSE);  /* Stop ADC convert and DFT */
   AD5940_INTCClrFlag(AFEINTSRC_DFTRDY);
 
-  DftRtiaVolt.Real = AD5940_ReadAfeResult(AFERESULT_DFTREAL);
-  DftRtiaVolt.Image = AD5940_ReadAfeResult(AFERESULT_DFTIMAGE);
+  DftRtia.Real = AD5940_ReadAfeResult(AFERESULT_DFTREAL);
+  DftRtia.Image = AD5940_ReadAfeResult(AFERESULT_DFTIMAGE);
   
-  if(DftRcalVolt.Real&(1L<<17))
-    DftRcalVolt.Real |= 0xfffc0000;
-  if(DftRcalVolt.Image&(1L<<17))
-    DftRcalVolt.Image |= 0xfffc0000;
-  if(DftRtiaVolt.Real&(1L<<17))
-    DftRtiaVolt.Real |= 0xfffc0000;
-  if(DftRtiaVolt.Image&(1L<<17))
-    DftRtiaVolt.Image |= 0xfffc0000;
+  if(DftRcal.Real&(1L<<17))
+    DftRcal.Real |= 0xfffc0000;
+  if(DftRcal.Image&(1L<<17))
+    DftRcal.Image |= 0xfffc0000;
+  if(DftRtia.Real&(1L<<17))
+    DftRtia.Real |= 0xfffc0000;
+  if(DftRtia.Image&(1L<<17))
+    DftRtia.Image |= 0xfffc0000;
   /* 
     ADC MUX is set to HSTIA_P and HSTIA_N.
     While the current flow through RCAL and then into RTIA, the current direction should be from HSTIA_N to HSTIA_P if we 
     measure the voltage across RCAL by MUXSELP_P_NODE and MUXSELN_N_NODE.
     So here, we add a negative sign to results
   */
-  DftRtiaVolt.Image = -DftRtiaVolt.Image;
-  DftRtiaVolt.Real = -DftRtiaVolt.Real; /* Current is measured by MUX HSTIA_P-HSTIA_N. It should be  */
+  DftRtia.Image = -DftRtia.Image;
+  DftRtia.Real = -DftRtia.Real; /* Current is measured by MUX HSTIA_P-HSTIA_N. It should be  */
    /*
       The impedance engine inside of AD594x give us Real part and Imaginary part of DFT. Due to technology used, the Imaginary 
       part in register is the opposite number. So we add a negative sign on the Imaginary part of results. 
    */
-  DftRtiaVolt.Image = -DftRtiaVolt.Image;
-  DftRcalVolt.Image = -DftRcalVolt.Image;
+  DftRtia.Image = -DftRtia.Image;
+  DftRcal.Image = -DftRcal.Image;
 
-
-  /***** Implement RTIA = (V_Rtia / V_Rcal) * Rcal ******/
   fImpCar_Type temp;
-  temp = AD5940_ComplexDivInt(&DftRtiaVolt, &DftRcalVolt);
+  temp = AD5940_ComplexDivInt(&DftRtia, &DftRcal);
   temp.Real *= pCalCfg->fRcal;
   temp.Image *= pCalCfg->fRcal;
   if(pCalCfg->bPolarResult == bFALSE)
