@@ -193,7 +193,7 @@ static void AD5940BIAStructInit() {
     pBIACfg->DftNum = DFTNUM_256;
 
     pBIACfg->NumOfData = -1;       /* Never stop until you stop it manually by AppBIACtrl() function */
-    pBIACfg->BiaODR = 1000.0;      /* ODR(Sample Rate) 20Hz */ // Not set here
+    pBIACfg->BiaODR = 1000.0;      /* ODR(Sample Rate) 20Hz */ // Not set here //--alfred
     pBIACfg->FifoThresh = 4;       /* 4 */
     pBIACfg->ADCSinc3Osr = ADCSINC3OSR_2;
 }
@@ -205,19 +205,29 @@ void AD5940_BIA_Setup() {
     AD5940BIAStructInit();
     /* Initialize BIA application. Provide a buffer, which is used to store sequencer commands */
     AppBIAInit(AppBuff, APPBUFF_SIZE);
+    print_setting_info();
 }
 
 void AD5940_BIA_UpdateReading() {
     /* Wait for interrupt happens */
-    // 2-4us
+    // 2 us
+    timer3.start();
     while (AD5940_GetMCUIntFlag() == 0);
-    // 8.246ms main time spend
+    // timer3.stop("1");
+    // timer3.start();
+    // 2 us
     AD5940_ClrMCUIntFlag();
+    // timer3.stop("2");
+    // timer3.start();
+    // 6031/6880/7302/7398 us main time spend 6ms-8ms
     uint32_t temp = APPBUFF_SIZE;
     AppBIAISR(AppBuff, &temp); /* Deal with it and provide a buffer to store data we got */
+    // timer3.stop("3");
+    // timer3.start();
     // if(debug_print) BIAShowResult(AppBuff, temp); /* Show the results */
-    // 2-4us
+    // 3-4us
     BIAResultUpdate(AppBuff);
+    // timer3.stop("4");
 }
 
 void print_setting_info(){

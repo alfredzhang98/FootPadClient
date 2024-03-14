@@ -35,7 +35,7 @@ AppBIACfg_Type AppBIACfg =
         .NumOfData = -1,
         .RcalVal = 10000.0, /* 10kOhm */
 
-        .PwrMod = AFEPWR_LP,
+        .PwrMod = AFEPWR_HP,
         .HstiaRtiaSel = HSTIARTIA_1K,
         .CtiaSel = 16,
         .ExcitBufGain = EXCITBUFGAIN_2,
@@ -302,7 +302,7 @@ static AD5940Err AppBIASeqMeasureGen(void)
   clks_cal.DataCount = 1L << (AppBIACfg.DftNum + 2); /* 2^(DFTNUMBER+2) */
   clks_cal.ADCSinc2Osr = AppBIACfg.ADCSinc2Osr;
   clks_cal.ADCSinc3Osr = AppBIACfg.ADCSinc3Osr;
-  clks_cal.ADCAvgNum = 0;
+  clks_cal.ADCAvgNum = 0;  //alfred 0/16
   clks_cal.RatioSys2AdcClk = AppBIACfg.SysClkFreq / AppBIACfg.AdcClkFreq;
   AD5940_ClksCalculate(&clks_cal, &WaitClks);
 
@@ -354,7 +354,7 @@ static AD5940Err AppBIASeqMeasureGen(void)
   // }
   /*alfred: 添加监视“AppBIACfg.MaxODR”，以了解设置配置允许的最大采样率。*/
   AppBIACfg.MeasSeqCycleCount = AD5940_SEQCycleTime();
-  AppBIACfg.MaxODR = 1 / (((AppBIACfg.MeasSeqCycleCount + 10) / 32.0) * 1E-6); // If Sysclk is16MHz
+  AppBIACfg.MaxODR = 1 / (((AppBIACfg.MeasSeqCycleCount + 10) / 32.0) * 1E-6); // If Sysclk is 32 MHz
 
   if (AppBIACfg.BiaODR > AppBIACfg.MaxODR)
   {
@@ -504,6 +504,7 @@ AD5940Err AppBIAInit(uint32_t *pBuffer, uint32_t BufferSize)
   AD5940_ClrMCUIntFlag();  /* Clear interrupt flag generated before */
 
   AD5940_AFEPwrBW(AppBIACfg.PwrMod, AFEBW_250KHZ);
+  AD5940_HPModeEn(bTRUE);
   AD5940_WriteReg(REG_AFE_SWMUX, 1 << 3);
   AppBIACfg.BIAInited = bTRUE; /* BIA application has been initialized. */
   return AD5940ERR_OK;
@@ -596,6 +597,7 @@ AD5940Err AppBIAISR(void *pBuff, uint32_t *pCount)
   // uint32_t BuffCount;
   uint32_t FifoCnt;
   // BuffCount = *pCount;
+  // 167 us
   // toolTimer_start();
   if (AppBIACfg.BIAInited == bFALSE)
     return AD5940ERR_APPERROR;
@@ -604,12 +606,14 @@ AD5940Err AppBIAISR(void *pBuff, uint32_t *pCount)
   AD5940_SleepKeyCtrlS(SLPKEY_LOCK); /* Don't enter hibernate */
   // toolTimer_stop("1");
   // useless
-  //  *pCount = 0;
+  // *pCount = 0;
 
   if (AD5940_INTCTestFlag(AFEINTC_0, AFEINTSRC_DATAFIFOTHRESH) == bTRUE)
   {
     /* Now there should be 4 data in FIFO */
     // FifoCnt = (AD5940_FIFOGetCnt() / 4) * 4;
+
+    // 100 us
     // toolTimer_start();
     FifoCnt = AD5940_FIFOGetCnt();
     // if (FifoCnt > BuffCount)
@@ -619,34 +623,34 @@ AD5940Err AppBIAISR(void *pBuff, uint32_t *pCount)
     // }
     // toolTimer_stop("2");
     // toolTimer_start();
+
+    // 3us
     AD5940_FIFORd((uint32_t *)pBuff, FifoCnt);
     // toolTimer_stop("3");
     // toolTimer_start();
+
+    // 2800 us
     AD5940_INTCClrFlag(AFEINTSRC_DATAFIFOTHRESH);
     // toolTimer_stop("4");
     // toolTimer_start();
+
+    // 2 us
     AppBIARegModify(pBuff, &FifoCnt); /* If there is need to do AFE re-configure, do it here when AFE is in active state */
     // AD5940_EnterSleepS();  /* Manually put AFE back to hibernate mode. */
-    AD5940_SleepKeyCtrlS(SLPKEY_UNLOCK); /* Allow AFE to enter hibernate mode */
-    /* Process data */
     // toolTimer_stop("5");
     // toolTimer_start();
-    AppBIADataProcess((int32_t *)pBuff, &FifoCnt);
+
+    // 90 us
+    // AD5940_SleepKeyCtrlS(SLPKEY_UNLOCK); /* Allow AFE to enter hibernate mode */
+    /* Process data */
     // toolTimer_stop("6");
+    // toolTimer_start();
+
+    // 1950 us
+    AppBIADataProcess((int32_t *)pBuff, &FifoCnt);
+    // toolTimer_stop("7");
     *pCount = FifoCnt;
     return 0;
-    // 1
-    //  Time spent: 166 us
-    // 2
-    //  Time spent: 97 us
-    // 3
-    //  Time spent: 2702 us
-    // 4
-    //  Time spent: 88 us
-    // 5
-    //  Time spent: 3 us
-    // 6
-    //  Time spent: 3660 us
   }
 
   return 0;
