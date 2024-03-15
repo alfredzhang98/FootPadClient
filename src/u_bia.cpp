@@ -5,7 +5,6 @@
 tool_timer timer3;
 
 extern bool debug_print;
-extern AppBIACfg_Type AppBIACfg;
 
 void print_setting_info();
 
@@ -233,10 +232,12 @@ void AD5940_BIA_UpdateReading() {
 }
 
 void print_setting_info(){
-    logger.loglnf("This is SysClkFreq (32MHz) %g", AppBIACfg.SysClkFreq);
+    AppBIACfg_Type *pBIACfg;
+    AppBIAGetCfg(&pBIACfg);
+    logger.loglnf("This is SysClkFreq (32MHz) %g", pBIACfg->SysClkFreq);
     logger.loglnf("This is AD5940_SEQCycleTime %g", AD5940_SEQCycleTime());
-    logger.loglnf("This is MeasSeqCycleCount %g", AppBIACfg.MeasSeqCycleCount);
-    logger.loglnf("This is MaxODR %g", AppBIACfg.MaxODR);
+    logger.loglnf("This is MeasSeqCycleCount %g", pBIACfg->MeasSeqCycleCount);
+    logger.loglnf("This is MaxODR %g", pBIACfg->MaxODR);
 }
 
 /*

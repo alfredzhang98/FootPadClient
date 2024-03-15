@@ -78,9 +78,6 @@ typedef struct {
   /* End */
 } AppBIACfg_Type;
 
-
-extern AppBIACfg_Type AppBIACfg;
-
 #define BIACTRL_START          0
 #define BIACTRL_STOPNOW        1
 #define BIACTRL_STOPSYNC       2
