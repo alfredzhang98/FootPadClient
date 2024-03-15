@@ -190,13 +190,13 @@ static void AD5940BIAStructInit() {
     pBIACfg->SeqStartAddr = 0;
     pBIACfg->MaxSeqLen = APPBUFF_SIZE; /** @todo add checker in function */
 
-    pBIACfg->RcalVal = 10000.0;
-    pBIACfg->DftNum = DFTNUM_256;
+    // pBIACfg->RcalVal = 10000.0;
+    // pBIACfg->DftNum = DFTNUM_256;
 
-    pBIACfg->NumOfData = -1;       /* Never stop until you stop it manually by AppBIACtrl() function */
-    pBIACfg->BiaODR = 1000.0;      /* ODR(Sample Rate) 20Hz */ // Not set here //--alfred
-    pBIACfg->FifoThresh = 4;       /* 4 */
-    pBIACfg->ADCSinc3Osr = ADCSINC3OSR_2;
+    // pBIACfg->NumOfData = -1;       /* Never stop until you stop it manually by AppBIACtrl() function */
+    // pBIACfg->BiaODR = 1000.0;      /* ODR(Sample Rate) 20Hz */ // Not set here //--alfred
+    // pBIACfg->FifoThresh = 4;       /* 4 */
+    // pBIACfg->ADCSinc3Osr = ADCSINC3OSR_2;
 }
 
 void AD5940_BIA_Setup() {
