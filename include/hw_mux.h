@@ -16,6 +16,11 @@
 #define MUX_WR_3 53
 #define MUX_WR_4 23
 
+
+// F_1 and F_0 are connect to the VCC
+#define S_plus 0
+#define S_minus 0
+
 void setupMux();
 
 void handleMux(const uint8_t *config);

@@ -2,6 +2,10 @@
 #include <tool_logger.h>
 #include <tool_timer.h>
 
+
+const int analogPin0 = S_minus;
+const int analogPin1 = S_plus;
+
 bool debug_print = false;
 bool log_print = true;
 
@@ -26,15 +30,13 @@ void setup()
 
   /* Init MUX and AD5940 */
   setupMux();
-  AD5940_BIA_Setup();
   delay(100);
 }
 
 void loop()
 {
 
-  while (Serial.available() == 0)
-    ;
+  while (Serial.available() == 0);
   uint8_t Usr_cmd = Serial.read();
 
   // 判断Usr_cmd是否为 SET_PATTERN_BEGIN = 126, SET_PATTERN_END = 127, GET_MEASUREMENT = 128
@@ -83,23 +85,26 @@ void loop()
       return;
     }
     logger.logln("GET_MEASUREMENT prcessing...");
-
-    AppBIACtrl(BIACTRL_START, nullptr);
     timer2.start();
     for (auto &i : measurePattern)
     {
       /* 更新Mux配置 */
       handleMux(i.data());
       /* 更新AD5940的测量结果 */
-      AD5940_BIA_UpdateReading();
       /* 转换测量结果为byte数组并发送 */
-      floatContainer.f = GetBIAResult();
+      int sensorValue0 = analogRead(analogPin0);
+      floatContainer.f = sensorValue0 * (5.0 / 1023.0);
+      if(debug_print)
+        logger.loglnf("analogReadResult: %f", floatContainer.f);
       if (!log_print && !debug_print)
         Serial.write(floatContainer.floatBytes, 4);
-      // logger.loglnf("AD5940MeasureResult: %f", floatContainer.f);
+
+      // int sensorValue1 = analogRead(analogPin1);
+      // floatContainer.f = sensorValue1 * (5.0 / 1023.0);
+      // if (!log_print && !debug_print)
+      //   Serial.write(floatContainer.floatBytes, 4);
     }
-    timer2.stop("HandleMux time");
-    AppBIACtrl(BIACTRL_STOPNOW, nullptr);
+    timer2.stop("Time");
   }
   delay(10);
 }

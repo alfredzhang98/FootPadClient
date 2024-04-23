@@ -7,7 +7,6 @@
 
 #include <Arduino.h>
 #include <hw_mux.h>
-#include <u_bia.h>
 
 enum {
     SET_PATTERN_BEGIN = 126,
