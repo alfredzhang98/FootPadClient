@@ -3,10 +3,9 @@
 #include <tool_timer.h>
 
 
-const int analogPin0 = S_minus;
-const int analogPin1 = S_plus;
+const int analogPin0 = ReadADCPin;
+// const int analogPin1 = S_plus;
 
-bool debug_print = false;
 bool log_print = true;
 
 union
@@ -19,6 +18,8 @@ std::vector<std::vector<uint8_t>> measurePattern;
 tool_timer timer1;
 tool_timer timer2;
 bool pattern_flag = false;
+uint8_t index_get = 0;
+int read_times = 100;
 
 unsigned long t;
 
@@ -27,6 +28,7 @@ void setup()
   Serial.begin(115200);
   Serial.flush();
   logger.enableLogging(log_print);
+  analogReadResolution( 12 );
 
   /* Init MUX and AD5940 */
   setupMux();
@@ -60,22 +62,32 @@ void loop()
     } while (true);
     timer1.stop("SET_PATTERN_BEGIN");
 
-    if (debug_print)
-    {
-      logger.enableIdentifier(false);
-      for (const auto &outer : measurePattern)
-      {
-        for (const auto &inner : outer)
-        {
 
-          logger.logf("%d ", static_cast<int>(inner));
-        }
+    logger.enableIdentifier(false);
+    for (const auto &outer : measurePattern)
+    {
+      for (const auto &inner : outer)
+      {
+
+        logger.logf("%d ", static_cast<int>(inner));
       }
-      logger.logln("\nFinsih print Data");
-      logger.enableIdentifier(true);
     }
+    logger.logln("\nFinsih print Data");
+    logger.enableIdentifier(true);
+    
     pattern_flag = true;
   }
+
+  if (Usr_cmd == SET_PATTERN_INDEX)
+  {
+    int temp = 0;
+    while (Serial.available() == 0)
+      ;
+    temp = Serial.read();
+    index_get = temp;
+    logger.loglnf("SET_PATTERN_INDEX: %d", index_get);  
+  }
+    
 
   if (Usr_cmd == GET_MEASUREMENT)
   {
@@ -84,27 +96,67 @@ void loop()
       logger.logln("GET_MEASUREMENT without the pattern setting");
       return;
     }
-    logger.logln("GET_MEASUREMENT prcessing...");
-    timer2.start();
+    // timer2.start();
+
     for (auto &i : measurePattern)
     {
       /* 更新Mux配置 */
       handleMux(i.data());
       /* 更新AD5940的测量结果 */
       /* 转换测量结果为byte数组并发送 */
-      int sensorValue0 = analogRead(analogPin0);
-      floatContainer.f = sensorValue0 * (5.0 / 1023.0);
-      if(debug_print)
-        logger.loglnf("analogReadResult: %f", floatContainer.f);
-      if (!log_print && !debug_print)
-        Serial.write(floatContainer.floatBytes, 4);
-
-      // int sensorValue1 = analogRead(analogPin1);
-      // floatContainer.f = sensorValue1 * (5.0 / 1023.0);
-      // if (!log_print && !debug_print)
-      //   Serial.write(floatContainer.floatBytes, 4);
+      int sensorValue1 = 0;
+      for (int i = 0; i < read_times; i++)
+      {
+        sensorValue1 += analogRead(analogPin0);
+      }
+      sensorValue1 = sensorValue1 / read_times;
+      floatContainer.f = float(sensorValue1);
+      // floatContainer.f = float(sensorValue1) * (3.3 / 4095.0);
+      // logger.loglnf("sensorValue1: %d", sensorValue1);
+      // logger.loglnf("analogReadResult: %f", floatContainer.f);
+      // if (!log_print) 
+      Serial.write(floatContainer.floatBytes, 4);
     }
-    timer2.stop("Time");
+    // timer2.stop("Time");
   }
+
+  if (Usr_cmd == GET_MEASUREMENT_1)
+  {
+    if (!pattern_flag)
+    {
+      logger.logln("GET_MEASUREMENT without the pattern setting");
+      return;
+    }
+    logger.logln("GET_MEASUREMENT_1 prcessing...");
+    // for single measure test
+    handleMux(measurePattern[index_get].data());
+    logger.loglnf("measurePattern[index_get].data(): %d %d %d %d", measurePattern[index_get].data()[0], measurePattern[index_get].data()[1], measurePattern[index_get].data()[2], measurePattern[index_get].data()[3]);
+    int sensorValue1 = 0;
+    for (int i = 0; i < read_times; i++)
+    {
+      sensorValue1 += analogRead(analogPin0);
+    }
+    sensorValue1 = sensorValue1 / read_times;
+    floatContainer.f = float(sensorValue1) * (3.3 / 4095.0);
+    logger.loglnf("sensorValue1: %d", sensorValue1);
+    logger.loglnf("analogReadResult: %f", floatContainer.f);
+  }
+
+  if (Usr_cmd == SWITCH_PRINT)
+  {
+    if (log_print)
+    {
+      logger.logln("Switch off log_print");
+      log_print = false;
+      logger.enableLogging(log_print);
+    }
+    else
+    {
+      log_print = true;
+      logger.enableLogging(log_print);
+      logger.logln("Switch on log_print");
+    }
+  }
+
   delay(10);
 }

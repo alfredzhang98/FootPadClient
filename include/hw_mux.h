@@ -17,9 +17,7 @@
 #define MUX_WR_4 23
 
 
-// F_1 and F_0 are connect to the VCC
-#define S_plus 0
-#define S_minus 0
+#define ReadADCPin A7
 
 void setupMux();
 
