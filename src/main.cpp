@@ -3,7 +3,7 @@
 #include <tool_timer.h>
 
 bool debug_print = false;
-bool log_print = true;
+bool log_print = false;
 
 union
 {
